@@ -52,7 +52,7 @@ namespace DiscordDkpBot.Auctions
 
 		public string GetBids ()
 		{
-			return string.Join("\n", Auction.Bids);
+			return string.Join("\n", Auction.GetBids());
 		}
 	}
 }

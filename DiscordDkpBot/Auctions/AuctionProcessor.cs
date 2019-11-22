@@ -50,7 +50,7 @@ namespace DiscordDkpBot.Auctions
 
 			int characterId = await dkpProcessor.GetCharacterId(character);
 			PlayerPoints points = await dkpProcessor.GetDkp(characterId);
-			int pointsAlreadyBid = state.Auctions.Values.SelectMany(x => x.Bids).Where(b => b.CharacterId == characterId).Sum(x => x.BidAmount) * rankConfig.PriceMultiplier;
+			int pointsAlreadyBid = state.Auctions.Values.Sum(x => x.GetBid(characterId)) * rankConfig.PriceMultiplier;
 			decimal availableDkp = (points.PointsCurrentWithTwink - pointsAlreadyBid) / rankConfig.PriceMultiplier;
 
 			if (availableDkp < bid)
@@ -58,7 +58,7 @@ namespace DiscordDkpBot.Auctions
 				throw new InsufficientDkpException($"{character} only has {availableDkp} left to bid with. Cancel some bids, or bid less!");
 			}
 
-			AuctionBid newBid = auction.Bids.AddOrUpdate(new AuctionBid(auction, character, characterId, bid, rankConfig, message.Author));
+			AuctionBid newBid = auction.AddOrUpdateBid(new AuctionBid(auction, character, characterId, bid, rankConfig, message.Author));
 
 			log.LogInformation($"Created bid: {newBid}");
 
@@ -74,8 +74,8 @@ namespace DiscordDkpBot.Auctions
 
 		public CompletedAuction CalculateWinners (Auction auction)
 		{
-			List<AuctionBid> bids = auction.Bids.ToList();
-			log.LogTrace("Finding winners for {0} from bids submitted: ({1})", auction.DetailDescription, string.Join("', ", auction.Bids));
+			List<AuctionBid> bids = auction.GetBids();
+			log.LogTrace("Finding winners for {0} from bids submitted: ({1})", auction.DetailDescription, string.Join("', ", bids));
 			List<AuctionBid> winners = new List<AuctionBid>();
 
 			for (int i = 0; i < auction.Quantity; i++)
@@ -123,7 +123,7 @@ namespace DiscordDkpBot.Auctions
 				throw new AuctionNotFoundException(item);
 			}
 
-			if (!auction.Bids.TryRemove(message.Author.Id, out AuctionBid bid))
+			if (!auction.TryRemoveBid(message.Author.Id, out AuctionBid bid))
 			{
 				throw new BidNotFoundException(item);
 			}

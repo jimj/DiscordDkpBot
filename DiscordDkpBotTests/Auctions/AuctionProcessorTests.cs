@@ -45,7 +45,7 @@ namespace DiscordDkpBotTests.Auctions
 
 			AuctionBid mainBid = new AuctionBid(auction, "main", 1, 50, main, GetAuthor(42));
 
-			auction.Bids.AddOrUpdate(mainBid);
+			auction.AddOrUpdateBid(mainBid);
 
 			//Act
 			CompletedAuction completedAuction = target.CalculateWinners(auction);
@@ -71,9 +71,9 @@ namespace DiscordDkpBotTests.Auctions
 			AuctionBid main2Bid = new AuctionBid(auction, "main2", 2, 17, main, GetAuthor(43));
 			AuctionBid altBid = new AuctionBid(auction, "alt", 3, 104, alt, GetAuthor(44));
 
-			auction.Bids.AddOrUpdate(mainBid);
-			auction.Bids.AddOrUpdate(main2Bid);
-			auction.Bids.AddOrUpdate(altBid);
+			auction.AddOrUpdateBid(mainBid);
+			auction.AddOrUpdateBid(main2Bid);
+			auction.AddOrUpdateBid(altBid);
 
 			//Act
 			CompletedAuction completedAuction = target.CalculateWinners(auction);
@@ -87,6 +87,33 @@ namespace DiscordDkpBotTests.Auctions
 
 			Assert.AreEqual(26, mainWinner.Price, "main should pay 26");
 		}
+
+		[Test]
+		public void CalculateWinners_OneItem_TwoBids ()
+		{
+			//Arrange
+			RaidInfo raid = new RaidInfo();
+			Auction auction = new Auction(23423, 1, "Nuke", 2, raid, GetMessage(42));
+
+			AuctionBid mainBid = new AuctionBid(auction, "main", 1, 10, main, GetAuthor(42));
+			AuctionBid main2Bid = new AuctionBid(auction, "main2", 2, 5, main, GetAuthor(43));
+
+			auction.AddOrUpdateBid(mainBid);
+			auction.AddOrUpdateBid(main2Bid);
+
+			//Act
+			CompletedAuction completedAuction = target.CalculateWinners(auction);
+
+			//Assert
+			Assert.AreEqual(1, completedAuction.WinningBids.Count);
+
+			WinningBid mainWinner = completedAuction.WinningBids.SingleOrDefault(x => x.Bid.CharacterName == mainBid.CharacterName);
+
+			Assert.IsNotNull(mainWinner, "main should be a winner.");
+
+			Assert.AreEqual(6, mainWinner.Price, "main should pay 6");
+		}
+
 		[Test]
 		public void CalculateWinners_OneItem_TieBids ()
 		{
@@ -97,8 +124,8 @@ namespace DiscordDkpBotTests.Auctions
 			AuctionBid mainBid = new AuctionBid(auction, "main", 1, 10, main, GetAuthor(42));
 			AuctionBid altBid = new AuctionBid(auction, "alt", 3, 10, alt, GetAuthor(44));
 
-			auction.Bids.AddOrUpdate(mainBid);
-			auction.Bids.AddOrUpdate(altBid);
+			auction.AddOrUpdateBid(mainBid);
+			auction.AddOrUpdateBid(altBid);
 
 			//Act
 			CompletedAuction completedAuction = target.CalculateWinners(auction);
@@ -122,10 +149,10 @@ namespace DiscordDkpBotTests.Auctions
 			AuctionBid boxBid2 = new AuctionBid(auction, "box2", 3, 250, box, GetAuthor(45));
 			AuctionBid altBid = new AuctionBid(auction, "alt", 4, 54, alt, GetAuthor(46));
 
-			auction.Bids.AddOrUpdate(altBid);
-			auction.Bids.AddOrUpdate(boxBid1);
-			auction.Bids.AddOrUpdate(mainBid);
-			auction.Bids.AddOrUpdate(boxBid2);
+			auction.AddOrUpdateBid(altBid);
+			auction.AddOrUpdateBid(boxBid1);
+			auction.AddOrUpdateBid(mainBid);
+			auction.AddOrUpdateBid(boxBid2);
 
 			//Act
 			CompletedAuction completedAuction = target.CalculateWinners(auction);
@@ -155,10 +182,10 @@ namespace DiscordDkpBotTests.Auctions
 			AuctionBid boxBid2 = new AuctionBid(auction, "second2", 3, 5, main, GetAuthor(45));
 			AuctionBid altBid = new AuctionBid(auction, "alt", 4, 2, alt, GetAuthor(46));
 
-			auction.Bids.AddOrUpdate(altBid);
-			auction.Bids.AddOrUpdate(boxBid1);
-			auction.Bids.AddOrUpdate(mainBid);
-			auction.Bids.AddOrUpdate(boxBid2);
+			auction.AddOrUpdateBid(altBid);
+			auction.AddOrUpdateBid(boxBid1);
+			auction.AddOrUpdateBid(mainBid);
+			auction.AddOrUpdateBid(boxBid2);
 
 			//Act
 			CompletedAuction completedAuction = target.CalculateWinners(auction);
@@ -188,10 +215,10 @@ namespace DiscordDkpBotTests.Auctions
 			AuctionBid bid3 = new AuctionBid(auction, "second2", 3, 41, main, GetAuthor(45));
 			AuctionBid bid4 = new AuctionBid(auction, "alt", 4, 35, main, GetAuthor(46));
 
-			auction.Bids.AddOrUpdate(bid4);
-			auction.Bids.AddOrUpdate(bid2);
-			auction.Bids.AddOrUpdate(bid1);
-			auction.Bids.AddOrUpdate(bid3);
+			auction.AddOrUpdateBid(bid4);
+			auction.AddOrUpdateBid(bid2);
+			auction.AddOrUpdateBid(bid1);
+			auction.AddOrUpdateBid(bid3);
 
 			//Act
 			CompletedAuction completedAuction = target.CalculateWinners(auction);
@@ -224,8 +251,8 @@ namespace DiscordDkpBotTests.Auctions
 			AuctionBid bid1 = new AuctionBid(auction, "main", 1, 104, main, GetAuthor(43));
 			AuctionBid bid2 = new AuctionBid(auction, "main2", 2, 45, main, GetAuthor(44));
 
-			auction.Bids.AddOrUpdate(bid2);
-			auction.Bids.AddOrUpdate(bid1);
+			auction.AddOrUpdateBid(bid2);
+			auction.AddOrUpdateBid(bid1);
 
 			//Act
 			CompletedAuction completedAuction = target.CalculateWinners(auction);
@@ -263,12 +290,12 @@ namespace DiscordDkpBotTests.Auctions
 			AuctionBid windforce = new AuctionBid(auction, "Windforce", 5, 5, alt, GetAuthor(47));
 			AuctionBid glororhan = new AuctionBid(auction, "Glororhan", 6, 5, raider, GetAuthor(48));
 
-			auction.Bids.AddOrUpdate(galvanized);
-			auction.Bids.AddOrUpdate(autobahn);
-			auction.Bids.AddOrUpdate(barogue);
-			auction.Bids.AddOrUpdate(khaldraks);
-			auction.Bids.AddOrUpdate(windforce);
-			auction.Bids.AddOrUpdate(glororhan);
+			auction.AddOrUpdateBid(galvanized);
+			auction.AddOrUpdateBid(autobahn);
+			auction.AddOrUpdateBid(barogue);
+			auction.AddOrUpdateBid(khaldraks);
+			auction.AddOrUpdateBid(windforce);
+			auction.AddOrUpdateBid(glororhan);
 
 			//Act
 			CompletedAuction completedAuction = target.CalculateWinners(auction);
@@ -302,12 +329,12 @@ namespace DiscordDkpBotTests.Auctions
 			AuctionBid kalvin = new AuctionBid(auction, "kalvin", 5, 67, raider, GetAuthor(47));
 			AuctionBid galvanized = new AuctionBid(auction, "GALVANIZED", 6, 55, raider, GetAuthor(48));
 
-			auction.Bids.AddOrUpdate(blace);
-			auction.Bids.AddOrUpdate(khovet);
-			auction.Bids.AddOrUpdate(glororhan);
-			auction.Bids.AddOrUpdate(mowron);
-			auction.Bids.AddOrUpdate(kalvin);
-			auction.Bids.AddOrUpdate(galvanized);
+			auction.AddOrUpdateBid(blace);
+			auction.AddOrUpdateBid(khovet);
+			auction.AddOrUpdateBid(glororhan);
+			auction.AddOrUpdateBid(mowron);
+			auction.AddOrUpdateBid(kalvin);
+			auction.AddOrUpdateBid(galvanized);
 
 			//Act
 			CompletedAuction completedAuction = target.CalculateWinners(auction);
@@ -334,7 +361,7 @@ namespace DiscordDkpBotTests.Auctions
 
 			AuctionBid mainBid = new AuctionBid(auction, "main", 1, 104, main, GetAuthor(42));
 
-			auction.Bids.AddOrUpdate(mainBid);
+			auction.AddOrUpdateBid(mainBid);
 
 			//Act
 			CompletedAuction completedAuction = target.CalculateWinners(auction);
@@ -357,9 +384,9 @@ namespace DiscordDkpBotTests.Auctions
 			AuctionBid main2Bid = new AuctionBid(auction, "main2", 2, 17, main, GetAuthor(43));
 			AuctionBid altBid = new AuctionBid(auction, "alt", 3, 104, alt, GetAuthor(44));
 
-			auction.Bids.AddOrUpdate(mainBid);
-			auction.Bids.AddOrUpdate(main2Bid);
-			auction.Bids.AddOrUpdate(altBid);
+			auction.AddOrUpdateBid(mainBid);
+			auction.AddOrUpdateBid(main2Bid);
+			auction.AddOrUpdateBid(altBid);
 
 			//Act
 			CompletedAuction completedAuction = target.CalculateWinners(auction);

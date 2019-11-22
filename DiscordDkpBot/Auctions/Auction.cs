@@ -14,7 +14,8 @@ namespace DiscordDkpBot.Auctions
 	{
 		private readonly Timer timer;
 		public IUser Author { get; }
-		public BidCollection Bids { get; } = new BidCollection();
+		private object bidsLock = new object();
+		private BidCollection Bids { get; } = new BidCollection();
 		public string CancelledText => $"Cancelled auction: {ShortDescription}.";
 		public IMessageChannel Channel { get; }
 		public string ClosedText => $"**[{ShortDescription}]** Bids are now closed.";
@@ -27,8 +28,9 @@ namespace DiscordDkpBot.Auctions
 		public string ShortDescription => $"{Quantity}x {Name}";
 		public event Action<object, Auction> Completed;
 		public event Action<object, Auction> Tick;
+		public bool IsComplete { get; private set; } = false;
 
-		public Auction(int id, int quantity, string name, double minutesRemaining, RaidInfo raid, IMessage message)
+		public Auction (int id, int quantity, string name, double minutesRemaining, RaidInfo raid, IMessage message)
 		{
 			ID = id;
 			Name = name;
@@ -43,27 +45,27 @@ namespace DiscordDkpBot.Auctions
 			timer.Elapsed += OnTick;
 		}
 
-		public string GetAnnouncementText(IEnumerable<RankConfiguration> ranks)
+		public string GetAnnouncementText (IEnumerable<RankConfiguration> ranks)
 		{
-			return $"**[{ShortDescription}]**\nBids are open for **{ShortDescription}** for **{MinutesRemaining}** minutes.\n```\"{Name}\" character 69 {string.Join("/", ranks.Select(x=>x.Name))}```";
+			return $"**[{ShortDescription}]**\nBids are open for **{ShortDescription}** for **{MinutesRemaining}** minutes.\n```\"{Name}\" character 69 {string.Join("/", ranks.Select(x => x.Name))}```";
 		}
 
-		public void Start()
+		public void Start ()
 		{
 			timer.Start();
 		}
 
-		public void Stop()
+		public void Stop ()
 		{
 			timer.Stop();
 		}
 
-		public override string ToString()
+		public override string ToString ()
 		{
 			return ShortDescription;
 		}
 
-		private void OnTick(object sender, ElapsedEventArgs e)
+		private void OnTick (object sender, ElapsedEventArgs e)
 		{
 			MinutesRemaining -= 0.5;
 
@@ -74,7 +76,44 @@ namespace DiscordDkpBot.Auctions
 			else
 			{
 				timer.Stop();
+
 				Completed?.Invoke(timer, this);
+			}
+		}
+
+		public AuctionBid AddOrUpdateBid (AuctionBid bid)
+		{
+			lock (bidsLock)
+			{
+				if (IsComplete)
+				{
+					// If we're done they missed out
+					throw new AuctionNotFoundException(Name);
+				}
+				Bids.AddOrUpdate(bid);
+			}
+			return bid;
+
+		}
+
+		public int GetBid (int characterId)
+		{
+			return Bids.Where(b => b.CharacterId == characterId).Sum(x => x.BidAmount);
+		}
+
+		public List<AuctionBid> GetBids()
+		{
+			lock (bidsLock)
+			{
+				return Bids.ToList();
+			}
+		}
+
+		public bool TryRemoveBid(ulong authorId, out AuctionBid auctionBid)
+		{
+			lock (bidsLock)
+			{
+				return Bids.TryRemove(authorId, out auctionBid);
 			}
 		}
 	}

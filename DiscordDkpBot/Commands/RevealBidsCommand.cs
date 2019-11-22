@@ -75,7 +75,7 @@ namespace DiscordDkpBot.Commands
 			builder.AppendLine("Bids in ranked order:");
 
 			builder.AppendLine("```css");
-			List<AuctionBid> bids = auction.Auction.Bids.ToList();
+			List<AuctionBid> bids = auction.Auction.GetBids();
 			bids.Sort();
 			foreach (AuctionBid bid in bids)
 			{
